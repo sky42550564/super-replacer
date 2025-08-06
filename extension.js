@@ -4,7 +4,7 @@ const path = require('path');
 
 function activate(context) {
 	// 注册命令
-	context.subscriptions.push(vscode.commands.registerCommand('superreplace.addRule', function () {
+	context.subscriptions.push(vscode.commands.registerCommand('superreplace.addRule', () => {
 		vscode.window.showInformationMessage('Hello World from superreplace!');
 	}));
 
@@ -20,7 +20,7 @@ function activate(context) {
 				webviewView.webview.html = fs.readFileSync(path.join(__dirname, 'assets', 'panel.html'), 'utf-8');
 				webviewView.webview.onDidReceiveMessage(message => {
 					if (message.command === 'hello') {
-						vscode.commands.executeCommand('myExtension.helloWorld');
+						vscode.commands.executeCommand('superreplace.addRule');
 					}
 				});
 			}
