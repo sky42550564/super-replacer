@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的插件面板</title>
+  <style>
+    body {
+      padding: 1rem;
+    }
+
+    button {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--vscode-button-hoverBackground);
+    }
+  </style>
+</head>
+
+<body>
+  <h1>欢迎使用我的插件</h1>
+  <p>这是左侧图标栏的自定义面板</p>
+  <button id="btn">点击我</button>
+
+  <script>
+    // 与插件通信
+    const vscode = acquireVsCodeApi();
+    document.getElementById('btn').addEventListener('click', () => {
+      vscode.postMessage({ command: 'hello' });
+    });
+  </script>
+</body>
+
+</html>

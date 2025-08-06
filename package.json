@@ -32,7 +32,7 @@
         {
           "id": "superreplace",
           "title": "超级替换",
-          "icon": "icon.svg"
+          "icon": "assets/icon.svg"
         }
       ]
     },
@@ -41,7 +41,7 @@
         {
           "type": "webview",
           "id": "superreplace.home",
-          "icon": "icon.svg",
+          "icon": "assets/icon.svg",
           "name": "设置面板"
         }
       ]
