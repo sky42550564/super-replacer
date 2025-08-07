@@ -35,7 +35,7 @@
     const vscode = acquireVsCodeApi();
     document.getElementById('btn').addEventListener('click', () => {
       console.log(123);
-      vscode.postMessage({ command: 'hello' });
+      vscode.postMessage({ command: 'saveRules', rules: JSON.stringify([{ name: 'test', value: 'test' }]) });
     });
   </script>
 </body>
