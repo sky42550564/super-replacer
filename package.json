@@ -40,7 +40,7 @@
       "sr": [
         {
           "type": "webview",
-          "id": "sr.home",
+          "id": "sr.sidebar",
           "icon": "assets/icon.svg",
           "name": "设置面板"
         }

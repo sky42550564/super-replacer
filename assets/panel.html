@@ -28,7 +28,8 @@
 <body>
   <h1>欢迎使用我的插件</h1>
   <p>这是左侧图标栏的自定义面板</p>
-  <button id="btn">点击我</button>
+  <button id="btn">添加命令</button>
+  <button id="btn1">测试命令</button>
 
   <script>
     // 与插件通信
@@ -36,6 +37,10 @@
     document.getElementById('btn').addEventListener('click', () => {
       console.log(123);
       vscode.postMessage({ command: 'saveRules', rules: JSON.stringify([{ name: 'test', value: 'test' }]) });
+    });
+    document.getElementById('btn1').addEventListener('click', () => {
+      console.log(1234);
+      vscode.postMessage({ command: 'testRule', rules: JSON.stringify([{ name: 'test', value: 'test' }]) });
     });
   </script>
 </body>

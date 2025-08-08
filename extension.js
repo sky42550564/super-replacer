@@ -36,32 +36,35 @@ function replace() {
 function activate(context) {
 	// 注册命令
 	context.subscriptions.push(vscode.commands.registerCommand('sr.addRule', () => {
+		vscode.window.showErrorMessage('替换成功');
 	}));
 
 	// 注册视图
-	context.subscriptions.push(vscode.window.registerWebviewViewProvider(
-		'sr.home',
-		new class {
-			resolveWebviewView(webviewView) {
-				webviewView.webview.options = {
-					enableScripts: true,
-					localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'assets')]
-				};
-				webviewView.webview.html = fs.readFileSync(path.join(__dirname, 'assets', 'panel.html'), 'utf-8');
-				webviewView.webview.onDidReceiveMessage(message => {
-					if (message.command === 'saveRules') {
-						rules = require('./assets/rules.js');
-						console.log('====================rules=', rules);
-						// fs.writeFileSync(path.join(__dirname, 'assets', 'rules.json'), message.rules);
-						for (const rule of rules) {
-							context.subscriptions.push(vscode.commands.registerCommand(`sr.${rule.name}`, () => {
-								rule.callback();
-							}));
-						}
+	context.subscriptions.push(vscode.window.registerWebviewViewProvider('sr.sidebar', new class {
+		resolveWebviewView(webviewView) {
+			webviewView.webview.options = {
+				enableScripts: true,
+				localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'assets')]
+			};
+			webviewView.webview.html = fs.readFileSync(path.join(__dirname, 'assets', 'panel.html'), 'utf-8');
+			webviewView.webview.onDidReceiveMessage(message => {
+				if (message.command === 'saveRules') {
+					rules = require('./assets/rules.js');
+					console.log('====================rules=', rules);
+					// fs.writeFileSync(path.join(__dirname, 'assets', 'rules.json'), message.rules);
+					for (const rule of rules) {
+						context.subscriptions.push(vscode.commands.registerCommand(`sr.${rule.name}`, () => {
+							// rule.callback();
+							vscode.window.showErrorMessage('替换成功' + rule.name);
+						}));
 					}
-				});
-			}
+					vscode.commands.executeCommand('setContext', 'extension.dynamicCommandAdded', true);
+				} else if (message.command === 'testRule') {
+					vscode.commands.executeCommand('sr.hello');
+				}
+			});
 		}
+	}
 	));
 }
 
