@@ -1,7 +1,7 @@
 {
-  "name": "superreplace",
+  "name": "sr",
   "publisher": "fang",
-  "displayName": "superreplace",
+  "displayName": "sr",
   "description": "超级替换",
   "version": "0.0.1",
   "engines": {
@@ -17,30 +17,30 @@
   "contributes": {
     "commands": [
       {
-        "command": "superreplace.addRule",
+        "command": "sr.addRule",
         "title": "添加规则"
       }
     ],
     "keybindings": [
       {
-        "command": "superreplace.addRule",
+        "command": "sr.addRule",
         "key": "alt+x"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "superreplace",
+          "id": "sr",
           "title": "超级替换",
           "icon": "assets/icon.svg"
         }
       ]
     },
     "views": {
-      "superreplace": [
+      "sr": [
         {
           "type": "webview",
-          "id": "superreplace.home",
+          "id": "sr.home",
           "icon": "assets/icon.svg",
           "name": "设置面板"
         }
