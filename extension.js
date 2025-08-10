@@ -34,15 +34,19 @@ function replace() {
 	});
 }
 
-function replaceViteResourcePaths(html, basePath, webview) {
+function replaceViteResourcePaths(html, distPath, webview) {
 	return html
 		.replace(/<script (.*)src="([^"]+)"/g, (match, other, src) => {
-			const uri = webview.asWebviewUri(vscode.Uri.joinPath(basePath, src));
+			const uri = webview.asWebviewUri(vscode.Uri.joinPath(distPath, src));
 			return `<script ${other}src="${uri}"`;
 		})
 		.replace(/<link (.*)href="([^"]+)"/g, (match, other, href) => {
-			const uri = webview.asWebviewUri(vscode.Uri.joinPath(basePath, href));
+			const uri = webview.asWebviewUri(vscode.Uri.joinPath(distPath, href));
 			return `<link ${other}href="${uri}"`;
+		})
+		.replace(`window.VSCODE_EXTENSION_ROOT = ''`, () => {
+			const uri = webview.asWebviewUri(vscode.Uri.joinPath(distPath));
+			return `window.VSCODE_EXTENSION_ROOT = '${uri}'`;
 		});
 }
 
@@ -55,14 +59,13 @@ function activate(context) {
 	// 注册视图
 	context.subscriptions.push(vscode.window.registerWebviewViewProvider('sr.sidebar', new class {
 		resolveWebviewView(panel) {
-			const basePath = vscode.Uri.joinPath(context.extensionUri, 'dist');
+			const distPath = vscode.Uri.joinPath(context.extensionUri, 'dist');
 			panel.webview.options = {
 				enableScripts: true,
-				localResourceRoots: [basePath]
+				localResourceRoots: [distPath]
 			};
-			// const html = fs.readFileSync(path.join(context.extensionUri.fsPath, 'assets', 'panel.html'), 'utf-8');
 			let html = fs.readFileSync(path.join(context.extensionUri.fsPath, 'dist', 'index.html'), 'utf-8');
-			html = replaceViteResourcePaths(fs.readFileSync(path.join(context.extensionUri.fsPath, 'dist', 'index.html'), 'utf-8'), basePath, panel.webview);
+			html = replaceViteResourcePaths(fs.readFileSync(path.join(context.extensionUri.fsPath, 'dist', 'index.html'), 'utf-8'), distPath, panel.webview);
 			console.log('====================html=', html);
 			panel.webview.html = html;
 			panel.webview.onDidReceiveMessage(message => {
