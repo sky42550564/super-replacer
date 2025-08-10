@@ -1,6 +1,7 @@
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
+const _ = require('lodash');
 let useCursorWord = false; // 是否替换光标处的单词
 let replaceCallback = word => '123'; // 替换函数
 let rules = [];
@@ -39,7 +40,7 @@ function replaceViteResourcePaths(html, basePath, webview) {
 			const uri = webview.asWebviewUri(vscode.Uri.joinPath(basePath, src));
 			return `<script ${other}src="${uri}"`;
 		})
-		.replace(/<link (.*)href="([^"]+)"/g, (match,  other, href) => {
+		.replace(/<link (.*)href="([^"]+)"/g, (match, other, href) => {
 			const uri = webview.asWebviewUri(vscode.Uri.joinPath(basePath, href));
 			return `<link ${other}href="${uri}"`;
 		});
@@ -78,11 +79,17 @@ function activate(context) {
 					// vscode.commands.executeCommand('setContext', 'extension.dynamicCommandAdded', true);
 				} else if (message.command === 'execItem') {
 					// vscode.commands.executeCommand('sr.hello');
+				} else if (message.command === 'initList') {
+					panel.webview.postMessage({
+						type: 'setList',
+						list: _.orderBy([
+							{ key: 'hello', name: 'a', sort: 100, command: 'sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja' },
+							{ key: 'hello', name: 'a1', sort: 101, command: 'sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja' },
+							{ key: 'hello', name: 'a2', sort: 102, command: 'sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja' },
+							{ key: 'hello', name: 'a3', sort: 103, command: 'sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja' },
+						], 'sort', 'desc'),
+					});
 				}
-			});
-			panel.webview.postMessage({
-				type: 'setList',
-				list: [],
 			});
 		}
 	}
