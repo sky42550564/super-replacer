@@ -33,6 +33,18 @@ function replace() {
 	});
 }
 
+function replaceViteResourcePaths(html, basePath, webview) {
+	return html
+		.replace(/<script (.*)src="([^"]+)"/g, (match, other, src) => {
+			const uri = webview.asWebviewUri(vscode.Uri.joinPath(basePath, src));
+			return `<script ${other}src="${uri}"`;
+		})
+		.replace(/<link (.*)href="([^"]+)"/g, (match,  other, href) => {
+			const uri = webview.asWebviewUri(vscode.Uri.joinPath(basePath, href));
+			return `<link ${other}href="${uri}"`;
+		});
+}
+
 function activate(context) {
 	// 注册命令
 	context.subscriptions.push(vscode.commands.registerCommand('sr.addRule', () => {
@@ -41,27 +53,36 @@ function activate(context) {
 
 	// 注册视图
 	context.subscriptions.push(vscode.window.registerWebviewViewProvider('sr.sidebar', new class {
-		resolveWebviewView(webviewView) {
-			webviewView.webview.options = {
+		resolveWebviewView(panel) {
+			const basePath = vscode.Uri.joinPath(context.extensionUri, 'dist');
+			panel.webview.options = {
 				enableScripts: true,
-				localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'assets')]
+				localResourceRoots: [basePath]
 			};
-			webviewView.webview.html = fs.readFileSync(path.join(__dirname, 'assets', 'panel.html'), 'utf-8');
-			webviewView.webview.onDidReceiveMessage(message => {
-				if (message.command === 'saveRules') {
-					rules = require('./assets/rules.js');
-					console.log('====================rules=', rules);
-					// fs.writeFileSync(path.join(__dirname, 'assets', 'rules.json'), message.rules);
-					for (const rule of rules) {
-						context.subscriptions.push(vscode.commands.registerCommand(`sr.${rule.name}`, () => {
-							// rule.callback();
-							vscode.window.showErrorMessage('替换成功' + rule.name);
-						}));
-					}
-					vscode.commands.executeCommand('setContext', 'extension.dynamicCommandAdded', true);
-				} else if (message.command === 'testRule') {
-					vscode.commands.executeCommand('sr.hello');
+			// const html = fs.readFileSync(path.join(context.extensionUri.fsPath, 'assets', 'panel.html'), 'utf-8');
+			let html = fs.readFileSync(path.join(context.extensionUri.fsPath, 'dist', 'index.html'), 'utf-8');
+			html = replaceViteResourcePaths(fs.readFileSync(path.join(context.extensionUri.fsPath, 'dist', 'index.html'), 'utf-8'), basePath, panel.webview);
+			console.log('====================html=', html);
+			panel.webview.html = html;
+			panel.webview.onDidReceiveMessage(message => {
+				if (message.command === 'updateList') {
+					// rules = require('./assets/rules.js');
+					// console.log('====================message=', message);
+					// // fs.writeFileSync(path.join(__dirname, 'assets', 'rules.json'), message.rules);
+					// for (const rule of rules) {
+					// 	context.subscriptions.push(vscode.commands.registerCommand(`sr.${rule.name}`, () => {
+					// 		// rule.callback();
+					// 		vscode.window.showErrorMessage('替换成功' + rule.name);
+					// 	}));
+					// }
+					// vscode.commands.executeCommand('setContext', 'extension.dynamicCommandAdded', true);
+				} else if (message.command === 'execItem') {
+					// vscode.commands.executeCommand('sr.hello');
 				}
+			});
+			panel.webview.postMessage({
+				type: 'setList',
+				list: [],
 			});
 		}
 	}
