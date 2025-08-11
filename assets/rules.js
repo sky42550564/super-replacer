@@ -1,8 +1,1 @@
-module.exports = [
-  {
-    name: 'hello',
-    key: 'alt+x',
-    useCursorWord: true,
-    callback: ({ v }) => console.log('====================='),
-  },
-];
+module.exports=[{"key":"hello","name":"a=====","sort":103,"command":"sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja"},{"key":"hello","name":"a2","sort":102,"command":"sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja"},{"key":"hello","name":"a1","sort":101,"command":"sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja"},{"key":"hello","name":"axxx","sort":100,"command":"sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja"}]

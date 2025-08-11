@@ -4,7 +4,24 @@ const path = require('path');
 const _ = require('lodash');
 let useCursorWord = false; // 是否替换光标处的单词
 let replaceCallback = word => '123'; // 替换函数
-let rules = [];
+let list = require('./assets/rules.js');
+console.log('====================list=', list);
+
+function replaceViteResourcePaths(html, distPath, webview) {
+	return html
+		.replace(/<script (.*)src="([^"]+)"/g, (match, other, src) => {
+			const uri = webview.asWebviewUri(vscode.Uri.joinPath(distPath, src));
+			return `<script ${other}src="${uri}"`;
+		})
+		.replace(/<link (.*)href="([^"]+)"/g, (match, other, href) => {
+			const uri = webview.asWebviewUri(vscode.Uri.joinPath(distPath, href));
+			return `<link ${other}href="${uri}"`;
+		})
+		.replace(`window.VSCODE_EXTENSION_ROOT = ''`, () => {
+			const uri = webview.asWebviewUri(vscode.Uri.joinPath(distPath));
+			return `window.VSCODE_EXTENSION_ROOT = '${uri}'`;
+		});
+}
 
 function replace() {
 	const editor = vscode.window.activeTextEditor;
@@ -34,22 +51,6 @@ function replace() {
 	});
 }
 
-function replaceViteResourcePaths(html, distPath, webview) {
-	return html
-		.replace(/<script (.*)src="([^"]+)"/g, (match, other, src) => {
-			const uri = webview.asWebviewUri(vscode.Uri.joinPath(distPath, src));
-			return `<script ${other}src="${uri}"`;
-		})
-		.replace(/<link (.*)href="([^"]+)"/g, (match, other, href) => {
-			const uri = webview.asWebviewUri(vscode.Uri.joinPath(distPath, href));
-			return `<link ${other}href="${uri}"`;
-		})
-		.replace(`window.VSCODE_EXTENSION_ROOT = ''`, () => {
-			const uri = webview.asWebviewUri(vscode.Uri.joinPath(distPath));
-			return `window.VSCODE_EXTENSION_ROOT = '${uri}'`;
-		});
-}
-
 function activate(context) {
 	// 注册命令
 	context.subscriptions.push(vscode.commands.registerCommand('sr.addRule', () => {
@@ -69,29 +70,23 @@ function activate(context) {
 			console.log('====================html=', html);
 			panel.webview.html = html;
 			panel.webview.onDidReceiveMessage(message => {
-				if (message.command === 'updateList') {
-					// rules = require('./assets/rules.js');
-					// console.log('====================message=', message);
-					// // fs.writeFileSync(path.join(__dirname, 'assets', 'rules.json'), message.rules);
-					// for (const rule of rules) {
+				if (message.type === 'updateList') {
+					list = message.list;
+					fs.writeFileSync(path.join(context.extensionUri.fsPath, 'assets', 'rules.js'), `module.exports=${JSON.stringify(message.list)}`, 'utf-8');
+					// list = require('./assets/list.js');
+					console.log('====================message=', message);
+					// // fs.writeFileSync(path.join(__dirname, 'assets', 'list.json'), message.list);
+					// for (const rule of list) {
 					// 	context.subscriptions.push(vscode.commands.registerCommand(`sr.${rule.name}`, () => {
 					// 		// rule.callback();
 					// 		vscode.window.showErrorMessage('替换成功' + rule.name);
 					// 	}));
 					// }
 					// vscode.commands.executeCommand('setContext', 'extension.dynamicCommandAdded', true);
-				} else if (message.command === 'execItem') {
+				} else if (message.type === 'execItem') {
 					// vscode.commands.executeCommand('sr.hello');
-				} else if (message.command === 'initList') {
-					panel.webview.postMessage({
-						type: 'setList',
-						list: _.orderBy([
-							{ key: 'hello', name: 'a', sort: 100, command: 'sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfjasdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja' },
-							{ key: 'hello', name: 'a1', sort: 101, command: 'sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja' },
-							{ key: 'hello', name: 'a2', sort: 102, command: 'sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja' },
-							{ key: 'hello', name: 'a3', sort: 103, command: 'sdaklfjadslkfjadslkfjadsklfjladskfjlsdakfjadsklfjadsklfjsadkljfladskfja' },
-						], 'sort', 'desc'),
-					});
+				} else if (message.type === 'initList') {
+					panel.webview.postMessage({ type: 'setList', list });
 				}
 			});
 		}
