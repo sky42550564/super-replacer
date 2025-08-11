@@ -1,9 +1,10 @@
 {
   "name": "sr",
-  "publisher": "fang",
-  "displayName": "sr",
+  "publisher": "jifengbu",
+  "displayName": "超级替换",
   "description": "超级替换",
   "version": "0.0.1",
+  "repository": "https://github.com/sky42550564/super-replacer.git",
   "engines": {
     "vscode": "^1.102.0"
   },
@@ -19,22 +20,6 @@
       {
         "command": "sr.execCommand",
         "title": "执行"
-      }
-    ],
-    "keybindings": [
-      {
-        "command": "sr.execCommand",
-        "args": [
-          0
-        ],
-        "key": "alt+x"
-      },
-      {
-        "command": "sr.execCommand",
-        "args": [
-          1
-        ],
-        "key": "alt+c"
       }
     ],
     "viewsContainers": {
