@@ -5,13 +5,14 @@ const _ = require('lodash');
 const moment = require('dayjs');
 const iconv = require('iconv-lite');
 const child_process = require('child_process');
-const bashPath = 'D:\\Program Files\\Git\\bin\\bash.exe';
 let list = require('./assets/rules.js');
 let webview;
 
-function exec(cmd, cwd, encoding = "gbk") {
+function exec(cmd, item) {
 	return new Promise(resolve => {
-		const options = { encoding: null, cwd }; // 关键：不指定编码，获取原始Buffer
+		const bashPath = item.exec == 'bash' ? 'C:\\Program Files\\Git\\bin\\bash.exe' : item.exec == 'cmd' ? undefined : item.exec;
+		const options = { shell: bashPath, encoding: null, cwd: item.cwd }; // 关键：不指定编码，获取原始Buffer
+		const encoding = item.encoding || (!bashPath ? 'gbk' : 'itf-8');
 		const command = child_process.exec(cmd, options);
 		command.stdout.on("data", (data) => {
 			const lines = iconv.decode(data, encoding);
@@ -97,7 +98,7 @@ async function doCommand(item) {
 	const func = parseFunction(item.command);
 	const result = _.isFunction(func) ? await func({ $: text, _, moment, utils }) : func;
 	if (item.exec) {
-		return exec(result, item.cwd, item.encoding);
+		return exec(result, item);
 	}
 	await editor.edit(doc => {
 		doc.replace(replaceSelection, result);
