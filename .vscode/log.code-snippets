@@ -1,0 +1,203 @@
+{
+	"console.log('===', $1)": {
+		"prefix": "lx",
+		"body": [
+			"console.log('=================$1', $1$2);"
+		],
+		"description": "console.log($1);"
+	},
+	"return console.log('===', $1)": {
+		"prefix": "lt",
+		"body": [
+			"return console.log('=================$1', $1$2);"
+		],
+		"description": "return console.log($1);"
+	},
+	"console.log('===', JSON.stringify($1, null, 2))": {
+		"prefix": "lj",
+		"body": [
+			"console.log('=================$1', JSON.stringify($1$2, null, 2));"
+		],
+		"description": "console.log(JSON.stringify($1, null, 2));"
+	},
+	"return console.log('params =', params)": {
+		"prefix": "lp",
+		"body": [
+			"// return console.log('params$1 =', params$1)"
+		],
+		"description": "return console.log('params =', params)"
+	},
+	"const xx = () => {}": {
+		"prefix": "vfunc",
+		"body": [
+			"const $1 = ($2) => { // $3",
+			"\t$4",
+			"}"
+		],
+		"description": "箭头函数"
+	},
+	"const xx = async () => {}": {
+		"prefix": "vsyncfunc",
+		"body": [
+			"const $1 = async ($2) => { // $3",
+			"\t$4",
+			"}"
+		],
+		"description": "异步箭头函数"
+	},
+	"const data = await utils.post()": {
+		"prefix": "vpost",
+		"body": [
+			"const data = await utils.post('/$1', $2);",
+			"if (!data.success) {",
+			"\treturn \\$alert(data.message)",
+			"}",
+			"\\$success('操作成功');"
+		],
+		"description": "post网络请求"
+	},
+	"const data = await utils.post('/many')": {
+		"prefix": "vmany",
+		"body": [
+			"const data = await utils.post('/many', {",
+			"\t$1: { url: '/detail/$1', params: {$2} },",
+			"});",
+			"if (!data.success && !data.break) {",
+			"\treturn \\$alert(data.message)",
+			"}",
+			"\\$success('操作成功');"
+		],
+		"description": "many网络请求"
+	},
+	"const props = defineProps({})": {
+		"prefix": "vprops",
+		"body": [
+			"const props = defineProps({",
+			"\t$1: null, // $2",
+			"\t$1: { default: $3 }, // $2",
+			"});",
+		],
+		"description": "props缩写"
+	},
+	"const state = reactive({})": {
+		"prefix": "vstate",
+		"body": [
+			"const state = reactive({",
+			"\t$1",
+			"});",
+		],
+		"description": "state缩写"
+	},
+	"const { xx, store: xxStore } = usePinia('xx')": {
+		"prefix": "vpinia",
+		"body": [
+			"const { $1, store: $1Store } = usePinia('$1');"
+		],
+		"description": "pinia缩写"
+	},
+	"const route = useRoute()": {
+		"prefix": "vroute",
+		"body": [
+			"const route = useRoute();"
+		],
+		"description": "route缩写"
+	},
+	"const xx = router.passProps.xx": {
+		"prefix": "vpassProps",
+		"body": [
+			"const $1 = router.passProps.$1;"
+		],
+		"description": "passProps缩写"
+	},
+	"import xx from './xx.vue'": {
+		"prefix": "vimport",
+		"body": [
+			"import $1 from './$1.vue';"
+		],
+		"description": "import缩写"
+	},
+	"const xx = ref()": {
+		"prefix": "vref",
+		"body": [
+			"const $1 = ref();"
+		],
+		"description": "ref缩写"
+	},
+	"const xx = computed(() => xx)": {
+		"prefix": "vcomputed",
+		"body": [
+			"const $1 = computed(() => $2);"
+		],
+		"description": "computed缩写"
+	},
+	"watch($xx, (cur, pre) => {})": {
+		"prefix": "vwatch",
+		"body": [
+			"watch($1, (cur, pre) => {",
+			"\t$2",
+			"}, { immediate: true, deep: true });",
+		],
+		"description": "watch缩写"
+	},
+	"defineExpose({ xx })": {
+		"prefix": "vexpose",
+		"body": [
+			"defineExpose({ $1 });"
+		],
+		"description": "expose缩写"
+	},
+	"nextTick(() => {})": {
+		"prefix": "vnexttick",
+		"body": [
+			"nextTick(() => {",
+			"\t$1",
+			"});"
+		],
+		"description": "nextTick缩写"
+	},
+	"onMounted(() => {})": {
+		"prefix": "vmount",
+		"body": [
+			"onMounted(() => {",
+			"\t$1",
+			"});"
+		],
+		"description": "onMounted缩写"
+	},
+	"onUnmounted(() => {})": {
+		"prefix": "vunmounted",
+		"body": [
+			"onUnmounted(() => {",
+			"\t$1",
+			"});"
+		],
+		"description": "onUnmounted缩写"
+	},
+	"onLoad(() => {})": {
+		"prefix": "vonload",
+		"body": [
+			"onLoad(() => {",
+			"\t$1",
+			"});"
+		],
+		"description": "onLoad缩写"
+	},
+	"for (const item of list) {}": {
+		"prefix": "vforof",
+		"body": [
+			"for (const item of $1) {",
+			"\t$2",
+			"}"
+		],
+		"description": "for of的缩写"
+	},
+	"for (const i in list) {}": {
+		"prefix": "vforin",
+		"body": [
+			"for (const i in $1) {",
+			"\t$2",
+			"}"
+		],
+		"description": "for in的缩写"
+	},
+}

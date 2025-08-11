@@ -3,9 +3,38 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
 const moment = require('dayjs');
+const iconv = require('iconv-lite');
+const child_process = require('child_process');
 let list = require('./assets/rules.js');
 let webview;
 
+function exec(cmd, item) {
+	return new Promise(resolve => {
+		const bashPath = item.exec == 'bash' ? 'C:\\Program Files\\Git\\bin\\bash.exe' : item.exec == 'cmd' ? undefined : item.exec;
+		const options = { shell: bashPath, encoding: null, cwd: item.cwd }; // 关键：不指定编码，获取原始Buffer
+		const encoding = item.encoding || (!bashPath ? 'gbk' : 'itf-8');
+		const command = child_process.exec(cmd, options);
+		command.stdout.on("data", (data) => {
+			const lines = iconv.decode(data, encoding);
+			_.forEach(lines.split('\n').filter(o => o.trim()), line =>
+				webview?.postMessage({ type: 'onLog', line, lineType: 'success', time: moment().format('HH:MM:ss') })
+			);
+		});
+		command.stderr.on("data", (data) => {
+			const lines = iconv.decode(data, encoding);
+			_.forEach(lines.split('\n').filter(o => o.trim()), line =>
+				webview?.postMessage({ type: 'onLog', line, lineType: 'error', time: moment().format('HH:MM:ss') })
+			);
+		});
+		command.on('close', (code) => {
+			webview?.postMessage({ type: 'onLog', line: '执行完成', lineType: 'success', time: moment().format('HH:MM:ss') });
+		});
+		command.on('error', (error) => {
+			webview?.postMessage({ type: 'onLog', line: error.message, lineType: 'error', time: moment().format('HH:MM:ss') });
+		});
+		return command;
+	});
+}
 function replaceViteResourcePaths(html, distPath, webview) {
 	return html
 		.replace(/<script (.*)src="([^"]+)"/g, (match, other, src) => {
@@ -68,9 +97,7 @@ async function doCommand(item) {
 	}
 	const func = parseFunction(item.command);
 	const result = _.isFunction(func) ? await func({ $: text, _, moment, utils }) : func;
-	await editor.edit(doc => {
-		doc.replace(replaceSelection, result);
-	});
+	exec(result, item);
 }
 
 function activate(context) {
