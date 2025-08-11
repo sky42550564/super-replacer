@@ -5,18 +5,25 @@ const _ = require('lodash');
 const moment = require('dayjs');
 const iconv = require('iconv-lite');
 const child_process = require('child_process');
+const bashPath = 'D:\\Program Files\\Git\\bin\\bash.exe';
 let list = require('./assets/rules.js');
 let webview;
 
-function exec(cmd, cwd, encoding = "gb2312") {
+function exec(cmd, cwd, encoding = "gbk") {
 	return new Promise(resolve => {
-		const options = { async: true, silent: true, encoding: 'utf-8', cwd };
+		const options = { encoding: null, cwd }; // 关键：不指定编码，获取原始Buffer
 		const command = child_process.exec(cmd, options);
 		command.stdout.on("data", (data) => {
-			webview?.postMessage({ type: 'onLog', line: iconv.decode(Buffer.from(data, "binary"), encoding), lineType: 'success', time: moment().format('HH:MM:ss') });
+			const lines = iconv.decode(data, encoding);
+			_.forEach(lines.split('\n').filter(o => o.trim()), line =>
+				webview?.postMessage({ type: 'onLog', line, lineType: 'success', time: moment().format('HH:MM:ss') })
+			);
 		});
 		command.stderr.on("data", (data) => {
-			webview?.postMessage({ type: 'onLog', line: iconv.decode(Buffer.from(data, "binary"), encoding), lineType: 'error', time: moment().format('HH:MM:ss') });
+			const lines = iconv.decode(data, encoding);
+			_.forEach(lines.split('\n').filter(o => o.trim()), line =>
+				webview?.postMessage({ type: 'onLog', line, lineType: 'error', time: moment().format('HH:MM:ss') })
+			);
 		});
 		command.on('close', (code) => {
 			webview?.postMessage({ type: 'onLog', line: '执行完成', lineType: 'success', time: moment().format('HH:MM:ss') });
