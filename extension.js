@@ -3,8 +3,30 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
 const moment = require('dayjs');
+const iconv = require('iconv-lite');
+const child_process = require('child_process');
 let list = require('./assets/rules.js');
+let webview;
 
+function exec(cmd, cwd, encoding = "gb2312") {
+	return new Promise(resolve => {
+		const options = { async: true, silent: true, encoding: 'utf-8', cwd };
+		const command = child_process.exec(cmd, options);
+		command.stdout.on("data", (data) => {
+			webview?.postMessage({ type: 'onLog', line: iconv.decode(Buffer.from(data, "binary"), encoding), lineType: 'success', time: moment().format('HH:MM:ss') });
+		});
+		command.stderr.on("data", (data) => {
+			webview?.postMessage({ type: 'onLog', line: iconv.decode(Buffer.from(data, "binary"), encoding), lineType: 'error', time: moment().format('HH:MM:ss') });
+		});
+		command.on('close', (code) => {
+			webview?.postMessage({ type: 'onLog', line: '执行完成', lineType: 'success', time: moment().format('HH:MM:ss') });
+		});
+		command.on('error', (error) => {
+			webview?.postMessage({ type: 'onLog', line: error.message, lineType: 'error', time: moment().format('HH:MM:ss') });
+		});
+		return command;
+	});
+}
 function replaceViteResourcePaths(html, distPath, webview) {
 	return html
 		.replace(/<script (.*)src="([^"]+)"/g, (match, other, src) => {
@@ -55,46 +77,37 @@ async function doCommand(item) {
 		toast: (msg) => vscode.window.showErrorMessage(msg),
 	};
 
-	let text = '', replaceRange, isInsert;
+	let text = '', replaceSelection = selection;
 	if (!selection.isEmpty) {
 		text = document.getText(selection);
-		replaceRange = selection;
 	} else {
 		const range = document.getWordRangeAtPosition(selection.active); // 替换光标处的单词
 		if (item.cursorWord) { // 取光标处的单词
 			text = document.getText(range);
-			replaceRange = selection;
-		} else {
-			isInsert = true;
-			replaceRange = selection.active;
-
+			replaceSelection = range;
 		}
 	}
 	const func = parseFunction(item.command);
 	const result = _.isFunction(func) ? await func({ $: text, _, moment, utils }) : func;
 	if (item.exec) {
-		return;
+		return exec(result, item.cwd, item.encoding);
 	}
-
-	console.log('=====result=', result);
-	// editor.edit(doc => {
-	// 	(isInsert ? doc.insert : doc.replace)(replaceRange, result);
-	// });
-	return vscode.window.showErrorMessage('==' + result);
+	await editor.edit(doc => {
+		doc.replace(replaceSelection, result);
+	});
 }
 
 function activate(context) {
 	// 注册命令
-	context.subscriptions.push(vscode.commands.registerCommand('sr.execCommand', (index) => {
-		vscode.window.showErrorMessage('执行命令' + index);
-		console.log('======', index);
-		doCommand(list[index]);
+	context.subscriptions.push(vscode.commands.registerCommand('sr.execCommand', async (index) => {
+		await doCommand(list[index]);
 	}));
 
 	// 注册视图
 	context.subscriptions.push(vscode.window.registerWebviewViewProvider('sr.sidebar', new class {
 		resolveWebviewView(panel) {
 			const distPath = vscode.Uri.joinPath(context.extensionUri, 'dist');
+			webview = panel.webview;
 			panel.webview.options = {
 				enableScripts: true,
 				localResourceRoots: [distPath]
