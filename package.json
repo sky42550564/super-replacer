@@ -17,14 +17,24 @@
   "contributes": {
     "commands": [
       {
-        "command": "sr.addRule",
-        "title": "添加规则"
+        "command": "sr.execCommand",
+        "title": "执行"
       }
     ],
     "keybindings": [
       {
-        "command": "sr.addRule",
+        "command": "sr.execCommand",
+        "args": [
+          0
+        ],
         "key": "alt+x"
+      },
+      {
+        "command": "sr.execCommand",
+        "args": [
+          1
+        ],
+        "key": "alt+c"
       }
     ],
     "viewsContainers": {
@@ -61,6 +71,7 @@
     "eslint": "^9.25.1"
   },
   "dependencies": {
+    "dayjs": "^1.11.13",
     "lodash": "^4.17.21"
   }
 }

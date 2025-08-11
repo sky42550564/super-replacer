@@ -2,10 +2,8 @@ const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
-let useCursorWord = false; // 是否替换光标处的单词
-let replaceCallback = word => '123'; // 替换函数
+const moment = require('dayjs');
 let list = require('./assets/rules.js');
-console.log('====================list=', list);
 
 function replaceViteResourcePaths(html, distPath, webview) {
 	return html
@@ -22,39 +20,75 @@ function replaceViteResourcePaths(html, distPath, webview) {
 			return `window.VSCODE_EXTENSION_ROOT = '${uri}'`;
 		});
 }
-
-function replace() {
+/*
+function :直接返回为函数
+字符串：
+'=>123' :返回 123，可以使用 $, _, moment, utils 等符号
+'=$123' :返回 input123 其中 $ 代表当前参数，直接替换
+'return 123' :与 '=>123'相同，返回 123，可以使用 $, _, moment, utils 等符号
+'({$, _, moment, utils})=>123' :返回 123
+其他： 直接返回字符串
+*/
+function parseFunction(func, sync) {
+	if (_.isString(func)) {
+		const _func = func.trim();
+		if (/^=>/.test(_func)) {
+			return (new Function(`return ${sync ? '' : 'async'}({$,_,moment,utils}={})${_func}`))();
+		} else if (/^=/.test(_func)) {
+			return (new Function(`return ${sync ? '' : 'async'}({$})=>'${_func.slice(1)}'.replace(/\\$/g, $)`))();
+		} else if (/=>/.test(_func)) {
+			return (new Function(`return ${_func}`))();
+		} else if (/^return /.test(_func)) {
+			return (new Function(`return ${sync ? '' : 'async'}({$,_,moment,utils}={})=>{ ${_func} }`))();
+		}
+	}
+	return func;
+}
+async function doCommand(item) {
 	const editor = vscode.window.activeTextEditor;
 	if (!editor)
 		return vscode.window.showErrorMessage('没有打开的编辑器');
 
 	const document = editor.document;
 	const selection = editor.selection;
+	const utils = { // 基础方法
+		toast: (msg) => vscode.window.showErrorMessage(msg),
+	};
 
+	let text = '', replaceRange, isInsert;
 	if (!selection.isEmpty) {
-		const text = document.getText(selection);
-		editor.edit(edit => {
-			edit.replace(selection, replaceCallback(text));
-		});
-		return vscode.window.showErrorMessage('替换成功');
+		text = document.getText(selection);
+		replaceRange = selection;
+	} else {
+		const range = document.getWordRangeAtPosition(selection.active); // 替换光标处的单词
+		if (item.cursorWord) { // 取光标处的单词
+			text = document.getText(range);
+			replaceRange = selection;
+		} else {
+			isInsert = true;
+			replaceRange = selection.active;
+
+		}
 	}
-	const range = document.getWordRangeAtPosition(selection.active);
-	if (useCursorWord) { // 替换光标处的单词
-		const text = document.getText(range);
-		editor.edit(edit => {
-			edit.replace(selection, replaceCallback(text));
-		});
-		return vscode.window.showErrorMessage('替换成功');
+	const func = parseFunction(item.command);
+	const result = _.isFunction(func) ? await func({ $: text, _, moment, utils }) : func;
+	if (item.exec) {
+		return;
 	}
-	editor.edit(edit => {
-		edit.insert(selection.active, replaceCallback());
-	});
+
+	console.log('=====result=', result);
+	// editor.edit(doc => {
+	// 	(isInsert ? doc.insert : doc.replace)(replaceRange, result);
+	// });
+	return vscode.window.showErrorMessage('==' + result);
 }
 
 function activate(context) {
 	// 注册命令
-	context.subscriptions.push(vscode.commands.registerCommand('sr.addRule', () => {
-		vscode.window.showErrorMessage('替换成功');
+	context.subscriptions.push(vscode.commands.registerCommand('sr.execCommand', (index) => {
+		vscode.window.showErrorMessage('执行命令' + index);
+		console.log('======', index);
+		doCommand(list[index]);
 	}));
 
 	// 注册视图
@@ -67,31 +101,20 @@ function activate(context) {
 			};
 			let html = fs.readFileSync(path.join(context.extensionUri.fsPath, 'dist', 'index.html'), 'utf-8');
 			html = replaceViteResourcePaths(fs.readFileSync(path.join(context.extensionUri.fsPath, 'dist', 'index.html'), 'utf-8'), distPath, panel.webview);
-			console.log('====================html=', html);
+			// console.log('html=', html);
 			panel.webview.html = html;
 			panel.webview.onDidReceiveMessage(message => {
 				if (message.type === 'updateList') {
 					list = message.list;
 					fs.writeFileSync(path.join(context.extensionUri.fsPath, 'assets', 'rules.js'), `module.exports=${JSON.stringify(message.list)}`, 'utf-8');
-					// list = require('./assets/list.js');
-					console.log('====================message=', message);
-					// // fs.writeFileSync(path.join(__dirname, 'assets', 'list.json'), message.list);
-					// for (const rule of list) {
-					// 	context.subscriptions.push(vscode.commands.registerCommand(`sr.${rule.name}`, () => {
-					// 		// rule.callback();
-					// 		vscode.window.showErrorMessage('替换成功' + rule.name);
-					// 	}));
-					// }
-					// vscode.commands.executeCommand('setContext', 'extension.dynamicCommandAdded', true);
 				} else if (message.type === 'execItem') {
-					// vscode.commands.executeCommand('sr.hello');
+					vscode.commands.executeCommand('sr.execCommand', message.index);
 				} else if (message.type === 'initList') {
 					panel.webview.postMessage({ type: 'setList', list });
 				}
 			});
 		}
-	}
-	));
+	}));
 }
 
 function deactivate() { }
