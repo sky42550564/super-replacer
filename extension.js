@@ -30,17 +30,18 @@ function :直接返回为函数
 '({$, _, moment, utils})=>123' :返回 123
 其他： 直接返回字符串
 */
-function parseFunction(func, sync) {
+function parseFunction(func) {
 	if (_.isString(func)) {
 		const _func = func.trim();
+		const pre = /await /.test(_func) ? 'async' : '';
 		if (/^=>/.test(_func)) {
-			return (new Function(`return ${sync ? '' : 'async'}({$,_,moment,utils}={})${_func}`))();
+			return (new Function(`return ${pre}({$,_,moment,utils}={})${_func}`))();
 		} else if (/^=/.test(_func)) {
-			return (new Function(`return ${sync ? '' : 'async'}({$})=>'${_func.slice(1)}'.replace(/\\$/g, $)`))();
+			return (new Function(`return ${pre}({$})=>'${_func.slice(1)}'.replace(/\\$/g, $)`))();
 		} else if (/=>/.test(_func)) {
 			return (new Function(`return ${_func}`))();
 		} else if (/^return /.test(_func)) {
-			return (new Function(`return ${sync ? '' : 'async'}({$,_,moment,utils}={})=>{ ${_func} }`))();
+			return (new Function(`return ${pre}({$,_,moment,utils}={})=>{ ${_func} }`))();
 		}
 	}
 	return func;
@@ -54,6 +55,13 @@ async function doCommand(item) {
 	const selection = editor.selection;
 	const utils = { // 基础方法
 		toast: (msg) => vscode.window.showErrorMessage(msg),
+		copy: async () => await vscode.env.clipboard.readText(),
+		paste: async (text) => await vscode.env.clipboard.writeText(text),
+		filePath: () => document.uri.fsPath,
+		fileName: () => path.basename(document.uri.fsPath),
+		fileDir: () => path.dirname(document.uri.fsPath),
+		fileExtname: () => path.extname(document.uri.fsPath),
+		workspaceFolders: () => vscode.workspace.workspaceFolders,
 	};
 
 	let text = '', replaceSelection = selection;
@@ -67,6 +75,7 @@ async function doCommand(item) {
 		}
 	}
 	const func = parseFunction(item.command);
+	console.log('=================func', func);
 	const result = _.isFunction(func) ? await func({ $: text, _, moment, utils }) : func;
 	await editor.edit(doc => {
 		doc.replace(replaceSelection, result);
