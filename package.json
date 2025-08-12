@@ -3,7 +3,7 @@
   "publisher": "jifengbu",
   "displayName": "超级替换",
   "description": "超级替换",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "repository": "https://github.com/sky42550564/super-replacer.git",
   "engines": {
     "vscode": "^1.102.0"

@@ -9,3 +9,8 @@ yo code
 npm install -g @vscode/vsce
 vsce package
 ```
+
+### 发布
+```bash
+vsce publish
+```
